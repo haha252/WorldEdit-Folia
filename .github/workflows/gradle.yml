@@ -1,35 +1,26 @@
-name: Gradle Build
-on: [push, pull_request, workflow_dispatch]
+name: Build and Deploy Minecraft Plugin
+
+on:
+  [workflow_dispatch]
 
 jobs:
   build:
-    name: Build WorldEdit on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v3
-    - name: Set up JDK
-      uses: actions/setup-java@v3
+
+    - name: Set up JDK 11
+      uses: actions/setup-java@v2
       with:
         java-version: 17
-        cache: 'gradle'
-        distribution: 'temurin'
-    - name: Build with Gradle
-      run: ./gradlew build -s
-    - uses: actions/upload-artifact@v3
-      name: Archive Reports
-      if: always()
-      with:
-        name: reports for ${{ matrix.os }}
-        path: '**/build/reports/**'
-    - uses: actions/upload-artifact@v3
-      name: Archive Logs
-      if: always()
-      with:
-        name: logs for ${{ matrix.os }}
-        path: '**/*.log'
+        distribution: adopt
 
+    - name: Build with Gradle
+      run: ./gradlew build
+
+    - name: Upload to GitHub
+      uses: actions/upload-artifact@v2
+      with:
+        name: worldedit-bukkit
+        path: worldedit-bukkit/build/libs
